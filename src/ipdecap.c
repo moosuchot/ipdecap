@@ -44,6 +44,11 @@
 #include "utils.h"
 #include "gre.h"
 #include "esp.h"
+#include "ipip.h"
+
+// TODO: move to esp.c
+// For ESP configuration
+struct llflow_t *flow_head = NULL;
 
 // Command line parameters
 static const char *args_str = "vi:o:c:f:Vl";
@@ -532,43 +537,6 @@ void process_nonip_packet(const u_char *payload, const int payload_len, pcap_hdr
   new_packet_hdr->len = payload_len;
 }
 
-/* Decapsulate an IPIP packet
- *
- */
-void process_ipip_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload) {
-
-  int packet_size = 0;
-  const u_char *payload_src = NULL;
-  u_char *payload_dst = NULL;
-  const struct ip *ip_hdr = NULL;
-
-  payload_src = payload;
-  payload_dst = new_packet_payload;
-
-  // Copy ethernet header
-  memcpy(payload_dst, payload_src, sizeof(struct ether_header));
-  payload_src += sizeof(struct ether_header);
-  payload_dst += sizeof(struct ether_header);
-  packet_size = sizeof(struct ether_header);
-
-  // Read encapsulating IP header to find offset to encapsulted IP packet
-  ip_hdr = (const struct ip *) payload_src;
-
-  debug_print("\tIPIP: outer IP - hlen:%i iplen:%02i protocol:%02x\n",
-      (ip_hdr->ip_hl *4), ntohs(ip_hdr->ip_len), ip_hdr->ip_p);
-
-  // Shift to encapsulated IP header, read total length
-  payload_src += ip_hdr->ip_hl *4;
-  ip_hdr = (const struct ip *) payload_src;
-
-  debug_print("\tIPIP: inner IP - hlen:%i iplen:%02i protocol:%02x\n",
-      (ip_hdr->ip_hl *4), ntohs(ip_hdr->ip_len), ip_hdr->ip_p);
-
-  memcpy(payload_dst, payload_src, ntohs(ip_hdr->ip_len));
-  packet_size += ntohs(ip_hdr->ip_len);
-
-  new_packet_hdr->len = packet_size;
-}
 
 /* Decapsulate an IPv6 packet
  *
