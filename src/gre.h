@@ -21,6 +21,8 @@
 
 #pragma once
 
+void process_gre_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload);
+
 struct grehdr {
   u_int16_t flags;
   u_int16_t next_protocol;
