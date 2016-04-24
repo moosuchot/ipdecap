@@ -24,43 +24,6 @@
 
 #pragma once
 
-#define MY_MAX_KEY_LENGTH  64
-
-#ifdef DEBUG
-  #define DEBUG_FLAG 1
-#else
-  #define DEBUG_FLAG 0
-#endif
-
-#define debug_print(fmt, ...) \
-            do { if (DEBUG_FLAG) fprintf(stderr, fmt, __VA_ARGS__); } while (0)
-
-#define MAXIMUM_SNAPLEN   65535
-#define GRE_HEADERLEN     4
-#define CONF_BUFFER_SIZE  1024
-
-#define member_size(type, member) sizeof(((type *)0)->member)
-
-#if DEBUG_FLAG
-  #define error(...)  {                                     \
-    fprintf(stderr, "error: %s(%d) ", __FILE__, __LINE__);  \
-    fprintf(stderr, __VA_ARGS__);                           \
-    exit(EXIT_FAILURE);                                     \
-  }
-#else
-  #define error(...)  {           \
-    fprintf(stderr, "error: ");   \
-    fprintf(stderr, __VA_ARGS__); \
-    exit(EXIT_FAILURE);           \
-  }
-#endif
-
-#define MALLOC(ptr, count, type) {                      \
-  if ( (ptr = malloc(count * sizeof(type))) == NULL) {  \
-    error("Cannot malloc");                             \
-  }                                                     \
-}
-
 typedef struct pcap_pkthdr pcap_hdr;
 
 typedef struct sockaddr_storage sa_sto;
@@ -76,12 +39,9 @@ void print_version(void);
 void print_algorithms(void);
 void verbose(const char *format, ...);
 void copy_n_shift(u_char *ptr, u_char *dst, u_int len);
-void *str2dec(const char *in, int maxsize);
 int add_flow(char *ip_src, char *ip_dst, char *crypt_name, char *auth_name, char *key, char *spi);
-void dumpmem(char *prefix, const unsigned char *ptr, int size, int space);
 void dump_flows(void);
 void usage(void);
-void print_mac(const unsigned char *mac_ptr);
 void flows_cleanup(void);
 struct llflow_t * find_flow(char *ip_src, char *ip_dst, u_int32_t spi);
 int parse_esp_conf(char *filename);

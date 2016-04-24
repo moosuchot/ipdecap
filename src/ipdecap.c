@@ -41,6 +41,7 @@
 
 #include "config.h"
 #include "ipdecap.h"
+#include "utils.h"
 #include "gre.h"
 #include "esp.h"
 
@@ -183,65 +184,6 @@ void print_algorithms() {
     "\n"
   );
 
-}
-/*
- * Friendly printed MAC address
- *
- */
-void print_mac(const unsigned char *mac_ptr) {
-
-  int i;
-  for(i=0;i<ETHER_ADDR_LEN;i++)
-    i != ETHER_ADDR_LEN ? printf("%02x:",  *(mac_ptr+i)) : printf("%02x",  *(mac_ptr+i));
-  printf("\n");
-}
-
-void dumpmem(char *prefix, const unsigned char *ptr, int size, int space) {
-
-  int i;
-  printf("%s:: ", prefix);
-  for(i=0;i<size;i++)
-    space == 0
-      ? printf("%02x", *(ptr+i))
-      : printf("%02x ", *(ptr+i));
-  printf("\n");
-}
-
-void *str2dec(const char *in, int maxsize) {
-
-  int i, len;
-  unsigned char c;
-  unsigned char *out = NULL;
-
-  MALLOC(out, maxsize, unsigned char);
-
-  len = strlen(in);
-  if (len > maxsize*2) {
-    printf("str too long\n");
-    free(out);
-    return NULL;
-  }
-  for(i=0;i<len;i++) {
-    c = in[i];
-
-    if ((c >= '0') && (c <= '9'))
-      c -= '0';
-    else if ((c >= 'A') && (c <= 'F'))
-      c = c-'A'+10;
-    else if ((c >= 'a') && (c <= 'f'))
-      c = c-'a'+10;
-    else {
-      printf("non hex digit: %c\n", c);
-      free(out);
-      return NULL;
-    }
-
-    if (i % 2 == 0)
-      out[i/2] = (c<<4);
-    else
-      out[i/2] = out[i/2] | c;
-  }
-  return out;
 }
 
 // Cleanup allocated flow during configuration file parsing (makes valgrind happy)
