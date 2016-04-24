@@ -18,6 +18,8 @@
   along with ipdecap.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #define ESP_SPI_LEN       8
 
 typedef struct esp_packet_t {

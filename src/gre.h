@@ -19,6 +19,8 @@
 */
 // http://tools.ietf.org/html/rfc1701
 
+#pragma once
+
 struct grehdr {
   u_int16_t flags;
   u_int16_t next_protocol;

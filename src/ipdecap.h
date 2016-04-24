@@ -21,6 +21,9 @@
 /* I used previously OpenSSL EVP_MAX_KEY_LENGTH,
  * but it has changed between OpenSSL 1.0.1 and 1.1.0 versions.
  */
+
+#pragma once
+
 #define MY_MAX_KEY_LENGTH  64
 
 #ifdef DEBUG
