@@ -45,6 +45,7 @@
 #include "gre.h"
 #include "esp.h"
 #include "ipip.h"
+#include "ipv6.h"
 
 // TODO: move to esp.c
 // For ESP configuration
@@ -535,47 +536,6 @@ void process_nonip_packet(const u_char *payload, const int payload_len, pcap_hdr
   // Copy full packet
   memcpy(new_packet_payload, payload, payload_len);
   new_packet_hdr->len = payload_len;
-}
-
-
-/* Decapsulate an IPv6 packet
- *
- */
-void process_ipv6_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload) {
-
-  int packet_size = 0;
-  const u_char *payload_src = NULL;
-  u_char *payload_dst = NULL;
-  const struct ip *ip_hdr = NULL;
-  uint16_t ethertype;
-
-  payload_src = payload;
-  payload_dst = new_packet_payload;
-
-  // Copy src and dst ether addr
-  memcpy(payload_dst, payload_src, 2*sizeof(struct ether_addr));
-  payload_src += 2*sizeof(struct ether_addr);
-  payload_dst += 2*sizeof(struct ether_addr);
-
-  // Set ethernet type to IPv6
-  ethertype = htons(ETHERTYPE_IPV6);
-  memcpy(payload_dst, &ethertype, member_size(struct ether_header, ether_type));
-  payload_src += member_size(struct ether_header, ether_type);
-  payload_dst += member_size(struct ether_header, ether_type);
-
-  // Read encapsulating IPv4 header to find header lenght and offset to encapsulated IPv6 packet
-  ip_hdr = (const struct ip *) payload_src;
-
-  packet_size = payload_len - (ip_hdr->ip_hl *4);
-
-  debug_print("\tIPv6: outer IP - hlen:%i iplen:%02i protocol:%02x\n",
-      (ip_hdr->ip_hl *4), ntohs(ip_hdr->ip_len), ip_hdr->ip_p);
-
-  // Shift to encapsulated IPv6 packet, then copy
-  payload_src += ip_hdr->ip_hl *4;
-
-  memcpy(payload_dst, payload_src, packet_size);
-  new_packet_hdr->len = packet_size;
 }
 
 
