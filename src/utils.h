@@ -20,9 +20,24 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include <pcap/pcap.h>
+
 void *str2dec(const char *in, int maxsize);
 void dumpmem(char *prefix, const unsigned char *ptr, int size, int space);
 void print_mac(const unsigned char *mac_ptr);
+
+
+typedef struct pcap_pkthdr pcap_hdr;
+
+typedef struct args_t {
+  char *input_file;       // --input option
+  char *output_file;      // --output option
+  char *esp_config_file;  // --config option
+  char *bpf_filter;       // --filter option
+  bool verbose;           // --verbose option
+  bool list_algo;         // --list option
+} args_t;
 
 #define MY_MAX_KEY_LENGTH  64
 

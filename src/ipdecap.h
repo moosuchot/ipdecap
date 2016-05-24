@@ -24,33 +24,15 @@
 
 #pragma once
 
-typedef struct pcap_pkthdr pcap_hdr;
-
-typedef struct sockaddr_storage sa_sto;
-
-typedef union address {
-  struct sockaddr sa;
-  struct sockaddr_in sa_in;
-  struct sockaddr_in6 sa_in6;
-  struct sockaddr_storage sa_sto;
-} address_t;
+#include "utils.h"
 
 void print_version(void);
-void print_algorithms(void);
 void verbose(const char *format, ...);
 void copy_n_shift(u_char *ptr, u_char *dst, u_int len);
-int add_flow(char *ip_src, char *ip_dst, char *crypt_name, char *auth_name, char *key, char *spi);
-void dump_flows(void);
 void usage(void);
-void flows_cleanup(void);
-struct llflow_t * find_flow(char *ip_src, char *ip_dst, u_int32_t spi);
-int parse_esp_conf(char *filename);
-struct crypt_method_t * find_crypt_method(char *crypt_name);
-struct auth_method_t * find_auth_method(char *auth_name);
 void handle_packets(u_char *user, const struct pcap_pkthdr *h, const u_char *bytes);
 
 void remove_ieee8021q_header(const u_char *in_payload, const int in_payload_len, pcap_hdr *out_pkthdr, u_char *out_payload);
 void process_nonip_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload);
-void process_esp_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload);
 
 void parse_options(int argc, char **argv);

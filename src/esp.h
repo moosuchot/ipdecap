@@ -20,7 +20,31 @@
 
 #pragma once
 
+#include <netinet/in.h>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
+#include "utils.h"
+
+void print_algorithms(void);
+void process_esp_packet(const u_char *payload, const int payload_len, pcap_hdr *new_packet_hdr, u_char *new_packet_payload);
+void dump_flows(void);
+int add_flow(char *ip_src, char *ip_dst, char *crypt_name, char *auth_name, char *key, char *spi);
+void flows_cleanup(void);
+struct llflow_t * find_flow(char *ip_src, char *ip_dst, u_int32_t spi);
+int parse_esp_conf(char *filename);
+struct crypt_method_t * find_crypt_method(char *crypt_name);
+struct auth_method_t * find_auth_method(char *auth_name);
+
 #define ESP_SPI_LEN       8
+
+typedef struct sockaddr_storage sa_sto;
+
+typedef union address {
+  struct sockaddr sa;
+  struct sockaddr_in sa_in;
+  struct sockaddr_in6 sa_in6;
+  struct sockaddr_storage sa_sto;
+} address_t;
 
 typedef struct esp_packet_t {
   u_int32_t spi;
@@ -59,51 +83,3 @@ typedef struct llflow_t {
   struct llflow_t *next;
 } llflow_t;
 
-/* rfc 4835:
-        Requirement    Encryption Algorithm (notes)
-        -----------    --------------------------
-        MUST           NULL [RFC2410] (1)
-        MUST           AES-CBC with 128-bit keys [RFC3602]
-        MUST-          TripleDES-CBC [RFC2451]
-        SHOULD         AES-CTR [RFC3686]
-        SHOULD NOT     DES-CBC [RFC2405] (2)
-
-
-        Requirement    Authentication Algorithm (notes)
-        -----------    -----------------------------
-        MUST           HMAC-SHA1-96 [RFC2404] (3)
-        SHOULD+        AES-XCBC-MAC-96 [RFC3566]
-        MAY            NULL (1)
-        MAY            HMAC-MD5-96 [RFC2403] (4)
-*/
-
-/* Authentication algorithms */
-
-auth_method_t any512            = { .name = "any512",          .openssl_auth = NULL, .len = 512/8, .next = NULL };
-auth_method_t any384            = { .name = "any384",          .openssl_auth = NULL, .len = 384/8, .next = &any512 };
-auth_method_t any256            = { .name = "any256",          .openssl_auth = NULL, .len = 256/8, .next = &any384 };
-auth_method_t any192            = { .name = "any192",          .openssl_auth = NULL, .len = 192/8, .next = &any256 };
-auth_method_t any160            = { .name = "any160",          .openssl_auth = NULL, .len = 160/8, .next = &any192 };
-auth_method_t any128            = { .name = "any128",          .openssl_auth = NULL, .len =  96/8, .next = &any160 };
-auth_method_t any96             = { .name = "any96",           .openssl_auth = NULL, .len =  96/8, .next = &any128 };
-auth_method_t aes_xcbc_mac_96   = { .name = "aes_xcbc_mac-96", .openssl_auth = NULL, .len =  96/8, .next = &any96 };
-auth_method_t hmac_md5_96       = { .name = "hmac_md5-96",     .openssl_auth = NULL, .len =  96/8, .next = &aes_xcbc_mac_96 };
-auth_method_t hmac_sha_1_96     = { .name = "hmac_sha1-96",    .openssl_auth = NULL, .len =  96/8, .next = &hmac_md5_96 };
-auth_method_t null_auth         = { .name = "null_auth",       .openssl_auth = NULL, .len =   8/8, .next = &hmac_sha_1_96 };
-
-// Linked list, point to first element
-auth_method_t *auth_method_list = &null_auth;
-
-/* Encryption algorithms */
-
-crypt_method_t null_enc       = { .name = "null_enc",   .openssl_cipher = NULL,           .next = NULL};
-crypt_method_t aes_256_cbc    = { .name = "aes256-cbc", .openssl_cipher = "aes-256-cbc",  .next = &null_enc};
-crypt_method_t aes_192_cbc    = { .name = "aes192-cbc", .openssl_cipher = "aes-192-cbc",  .next = &aes_256_cbc};
-crypt_method_t aes_128_cbc    = { .name = "aes128-cbc", .openssl_cipher = "aes-128-cbc",  .next = &aes_192_cbc};
-crypt_method_t aes_128_ctr    = { .name = "aes128-ctr", .openssl_cipher = "aes-128-ctr",  .next = &aes_128_cbc};
-crypt_method_t tripledes_cbc  = { .name = "3des-cbc",   .openssl_cipher = "des-ede3-cbc", .next = &aes_128_ctr};
-crypt_method_t des_cbc        = { .name = "des-cbc",    .openssl_cipher = "des-cbc",      .next = &tripledes_cbc};
-
-
-// Linked list, point to first element
-crypt_method_t *crypt_method_list = &des_cbc;
